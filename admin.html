@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#0F172A" />
+  <title>Admin Panel | DIGISYSTEM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="images/logo.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0F172A;
+      --bg-2: #1E293B;
+      --bg-3: #16213B;
+      --accent: #06B6D4;
+      --accent-2: #8B5CF6;
+      --accent-3: #0EA5E9;
+      --white: #FFFFFF;
+      --muted: #94A3B8;
+      --text: #E2E8F0;
+      --green: #34D399;
+      --amber: #FBBF24;
+      --red: #F87171;
+      --border: rgba(148, 163, 184, .15);
+      --radius: 16px;
+      --shadow: 0 20px 50px rgba(2, 8, 23, .55);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; color: var(--white); }
+    .hidden { display: none !important; }
+
+    /* ---------- Lock screen ---------- */
+    #lockScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: radial-gradient(ellipse at top, #16213B 0%, #0B1120 70%);
+    }
+    .lock-card {
+      width: min(400px, 100%);
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.4rem 2rem;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .lock-card .logo-img { width: 64px; height: 64px; object-fit: contain; margin: 0 auto 1rem; }
+    .lock-card h2 { font-size: 1.35rem; margin-bottom: .3rem; }
+    .lock-card p { color: var(--muted); font-size: .9rem; margin-bottom: 1.6rem; }
+    .lock-card input {
+      width: 100%;
+      padding: .85rem 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, .8);
+      color: var(--white);
+      font-size: 1rem;
+      outline: none;
+      text-align: center;
+      letter-spacing: .15em;
+      transition: .25s;
+    }
+    .lock-card input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6, 182, 212, .25); }
+    .lock-card form input + input { margin-top: .65rem; }
+    .lock-card .lock-err { color: var(--red); font-size: .85rem; margin-top: .6rem; min-height: 1.2em; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      border: none;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: .92rem;
+      border-radius: 12px;
+      padding: .8rem 1.4rem;
+      transition: .25s;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-3)); color: #04121a; }
+    .btn-primary:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .btn-block { width: 100%; margin-top: 1.1rem; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--white); border-color: var(--accent); }
+    .btn-danger { background: rgba(248, 113, 113, .12); color: var(--red); border: 1px solid rgba(248, 113, 113, .35); }
+    .btn-danger:hover { background: rgba(248, 113, 113, .25); }
+
+    /* ---------- Admin shell ---------- */
+    .admin-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(15, 23, 42, .85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-header .inner {
+      width: min(1200px, 94%);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: .9rem 0;
+    }
+    .admin-header .brand { display: flex; align-items: center; gap: .6rem; font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--white); font-size: 1.05rem; }
+    .admin-header .brand img { width: 36px; height: 36px; object-fit: contain; }
+    .admin-header .brand em { font-style: normal; color: var(--accent); }
+    .admin-header .spacer { flex: 1; }
+    .badge { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: .25rem .6rem; border-radius: 999px; background: rgba(6, 182, 212, .15); color: var(--accent); border: 1px solid rgba(6, 182, 212, .3); }
+
+    main { width: min(1200px, 94%); margin: 1.6rem auto 3rem; }
+
+    /* ---------- Stats ---------- */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.3rem;
+    }
+    .stat .label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .stat .value { font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--white); line-height: 1.2; }
+    .stat.pending .value { color: var(--amber); }
+    .stat.progress .value { color: var(--accent); }
+    .stat.done .value { color: var(--green); }
+
+    /* ---------- Toolbar ---------- */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .8rem;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .9rem 1rem;
+      margin-bottom: 1.3rem;
+    }
+    .search {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      background: rgba(15, 23, 42, .8);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 .8rem;
+    }
+    .search input { flex: 1; background: none; border: none; outline: none; color: var(--white); padding: .6rem 0; font-size: .92rem; }
+    .search svg { width: 16px; height: 16px; fill: var(--muted); flex-shrink: 0; }
+    .tabs { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .tab {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-size: .8rem;
+      font-weight: 600;
+      padding: .5rem .95rem;
+      border-radius: 999px;
+      transition: .2s;
+    }
+    .tab:hover { color: var(--white); }
+    .tab.active { background: linear-gradient(135deg, var(--accent), var(--accent-3)); color: #04121a; border-color: transparent; }
+    .view-toggle { display: flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .view-toggle button {
+      background: transparent; border: none; cursor: pointer; color: var(--muted);
+      padding: .55rem .9rem; font-size: .8rem; font-family: 'Poppins', sans-serif; font-weight: 600;
+    }
+    .view-toggle button.active { background: rgba(6, 182, 212, .15); color: var(--accent); }
+
+    /* ---------- Table ---------- */
+    .table-wrap { background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 780px; }
+    thead th {
+      text-align: left;
+      font-family: 'Poppins', sans-serif;
+      font-size: .74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      padding: .9rem 1rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody td { padding: .85rem 1rem; border-bottom: 1px solid rgba(148, 163, 184, .08); font-size: .9rem; vertical-align: top; }
+    tbody tr:hover { background: rgba(6, 182, 212, .04); }
+    tbody tr:last-child td { border-bottom: none; }
+    td .req { color: var(--muted); font-size: .86rem; max-width: 340px; }
+    td .date { color: var(--muted); font-size: .78rem; white-space: nowrap; }
+    .name { font-weight: 600; color: var(--white); }
+    .phone { color: var(--accent-3); }
+
+    select.status {
+      appearance: none;
+      -webkit-appearance: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: .76rem;
+      font-weight: 600;
+      padding: .42rem .9rem .42rem .8rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      outline: none;
+      color: var(--text);
+      background: var(--bg-2);
+    }
+    select.status.opt-pending { color: var(--amber); border-color: rgba(251, 191, 36, .4); background: rgba(251, 191, 36, .08); }
+    select.status.opt-progress { color: var(--accent); border-color: rgba(6, 182, 212, .4); background: rgba(6, 182, 212, .08); }
+    select.status.opt-completed { color: var(--green); border-color: rgba(52, 211, 153, .4); background: rgba(52, 211, 153, .08); }
+
+    .row-actions { display: flex; gap: .45rem; justify-content: flex-end; }
+    .icon-btn {
+      background: transparent; border: 1px solid var(--border); cursor: pointer;
+      border-radius: 8px; padding: .35rem .55rem; color: var(--muted); transition: .2s; line-height: 1;
+    }
+    .icon-btn:hover { color: var(--white); border-color: var(--accent); }
+    .icon-btn.del:hover { color: var(--red); border-color: var(--red); background: rgba(248, 113, 113, .1); }
+    .icon-btn svg { width: 16px; height: 16px; display: block; }
+
+    /* ---------- Cards ---------- */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .lead-card { background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; display: flex; flex-direction: column; gap: .7rem; }
+    .lead-card .top { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; }
+    .lead-card .name { font-family: 'Poppins', sans-serif; font-size: 1rem; }
+    .lead-card .req { color: var(--muted); font-size: .88rem; }
+    .lead-card .foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: auto; }
+    .chip { display: inline-block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: .22rem .6rem; border-radius: 999px; }
+    .chip.pending { color: var(--amber); background: rgba(251, 191, 36, .12); }
+    .chip.progress { color: var(--accent); background: rgba(6, 182, 212, .12); }
+    .chip.completed { color: var(--green); background: rgba(52, 211, 153, .12); }
+
+    /* ---------- Empty / loading ---------- */
+    .state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .state svg { width: 46px; height: 46px; fill: var(--muted); opacity: .5; margin-bottom: .6rem; }
+    .spinner {
+      width: 34px; height: 34px; margin: 0 auto 1rem;
+      border: 3px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---------- Toast ---------- */
+    #toast {
+      position: fixed; bottom: 1.4rem; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--bg-2); color: var(--white); border: 1px solid var(--border);
+      border-radius: 12px; padding: .8rem 1.3rem; font-size: .9rem; z-index: 200;
+      opacity: 0; pointer-events: none; transition: .3s; box-shadow: var(--shadow); max-width: 92%;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.ok { border-color: rgba(52, 211, 153, .5); }
+    #toast.bad { border-color: rgba(248, 113, 113, .5); }
+
+    @media (max-width: 640px) {
+      .admin-header .badge { display: none; }
+      .stat { padding: .9rem 1rem; }
+      .stat .value { font-size: 1.5rem; }
+      main { margin-top: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Lock screen -->
+  <div id="lockScreen">
+    <div class="lock-card">
+      <img src="images/logo.png" alt="DIGISYSTEM" class="logo-img" />
+<h2>Admin Login</h2>
+      <p>Sign in with your Supabase admin account.</p>
+      <form id="lockForm" autocomplete="off">
+        <input type="email" id="lockEmail" placeholder="Email address" aria-label="Email" autocomplete="username" required />
+        <input type="password" id="lockPass" placeholder="Password" aria-label="Password" autocomplete="current-password" required />
+        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        <p class="lock-err" id="lockErr"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin app -->
+  <div id="adminApp" class="hidden">
+    <header class="admin-header">
+      <div class="inner">
+        <div class="brand">
+          <img src="images/logo.png" alt="" />
+          <span>DIGI<em>SYSTEM</em> &nbsp;Admin</span>
+        </div>
+        <span class="badge">Private</span>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost" id="refreshBtn">Refresh</button>
+        <button class="btn btn-ghost" id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="stats">
+        <div class="stat"><div class="label">Total Leads</div><div class="value" id="statTotal">0</div></div>
+        <div class="stat pending"><div class="label">Pending</div><div class="value" id="statPending">0</div></div>
+        <div class="stat progress"><div class="label">In Progress</div><div class="value" id="statProgress">0</div></div>
+        <div class="stat done"><div class="label">Completed</div><div class="value" id="statCompleted">0</div></div>
+      </div>
+
+      <div class="toolbar">
+        <div class="search">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+          <input type="text" id="searchInput" placeholder="Search name, phone or requirement..." />
+        </div>
+        <div class="tabs" id="statusTabs">
+          <button class="tab active" data-filter="all">All</button>
+          <button class="tab" data-filter="Pending">Pending</button>
+          <button class="tab" data-filter="In Progress">In Progress</button>
+          <button class="tab" data-filter="Completed">Completed</button>
+        </div>
+        <div class="view-toggle">
+          <button id="viewTable" class="active">Table</button>
+          <button id="viewCards">Cards</button>
+        </div>
+      </div>
+
+      <div id="content"></div>
+    </main>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    var SUPABASE_URL = "https://gvhrjcsfqhcvdksndqcx.supabase.co";
+    var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2aHJqY3NmcWhjdmRrc25kcWN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0MTQyNjgsImV4cCI6MjEwMTk5MDI2OH0.bc00jGTZB2V9AW6mK6CrZA99W9eRPS-0UWu8hGpmnAM";
+
+    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    var leads = [];
+    var activeFilter = "all";
+    var activeView = "table";
+    var searchTerm = "";
+
+    var lockScreen = document.getElementById("lockScreen");
+    var adminApp = document.getElementById("adminApp");
+    var lockForm = document.getElementById("lockForm");
+    var lockEmail = document.getElementById("lockEmail");
+    var lockPass = document.getElementById("lockPass");
+    var lockErr = document.getElementById("lockErr");
+    var contentEl = document.getElementById("content");
+    var toastEl = document.getElementById("toast");
+
+    function escapeHtml(str) {
+      return String(str == null ? "" : str)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return "";
+      var d = new Date(iso);
+      return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    }
+
+    function toast(msg, type) {
+      toastEl.textContent = msg;
+      toastEl.className = "show " + (type || "");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(function () { toastEl.className = ""; }, 3200);
+    }
+
+    function unlock() {
+      lockScreen.classList.add("hidden");
+      adminApp.classList.remove("hidden");
+      loadLeads();
+    }
+
+    lockForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var email = lockEmail.value.trim();
+      var pass = lockPass.value;
+      var btn = lockForm.querySelector("button[type='submit']");
+      var originalText = btn.textContent;
+
+      btn.disabled = true;
+      btn.textContent = "Signing in...";
+      lockErr.textContent = "";
+
+      var { data, error } = await supabase.auth.signInWithPassword({ email: email, password: pass });
+
+      btn.disabled = false;
+      btn.textContent = originalText;
+
+      if (error) {
+        lockErr.textContent = "Invalid email or password. Try again.";
+        lockPass.value = "";
+        lockPass.focus();
+      } else {
+        lockPass.value = "";
+        unlock();
+      }
+    });
+
+    function logout() {
+      supabase.auth.signOut();
+      adminApp.classList.add("hidden");
+      lockScreen.classList.remove("hidden");
+      lockEmail.value = "";
+      lockPass.value = "";
+      lockEmail.focus();
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", logout);
+
+    async function loadLeads() {
+      contentEl.innerHTML = '<div class="state"><div class="spinner"></div>Loading leads...</div>';
+      var { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
+      if (error) {
+        contentEl.innerHTML = '<div class="state"><svg viewBox="0 0 24 24"><path d="M12 2 1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/></svg><p>' + escapeHtml(error.message) + '</p></div>';
+        return;
+      }
+      leads = data || [];
+      render();
+    }
+
+    function filtered() {
+      var term = searchTerm.toLowerCase();
+      return leads.filter(function (l) {
+        if (activeFilter !== "all" && (l.status || "Pending") !== activeFilter) return false;
+        if (!term) return true;
+        return [l.customer_name, l.phone, l.address].some(function (v) {
+          return String(v || "").toLowerCase().indexOf(term) !== -1;
+        });
+      });
+    }
+
+    function statusOf(l) { return l.status || "Pending"; }
+
+    function renderStats(list) {
+      var pending = 0, progress = 0, done = 0;
+      list.forEach(function (l) {
+        var s = statusOf(l);
+        if (s === "Completed") done++;
+        else if (s === "In Progress") progress++;
+        else pending++;
+      });
+      document.getElementById("statTotal").textContent = leads.length;
+      document.getElementById("statPending").textContent = pending;
+      document.getElementById("statProgress").textContent = progress;
+      document.getElementById("statCompleted").textContent = done;
+    }
+
+    function statusOptions(selected) {
+      return ["Pending", "In Progress", "Completed"].map(function (s) {
+        return '<option value="' + s + '"' + (s === selected ? " selected" : "") + ">" + s + "</option>";
+      }).join("");
+    }
+
+    function statusClass(s) {
+      return s === "Completed" ? "opt-completed" : (s === "In Progress" ? "opt-progress" : "opt-pending");
+    }
+
+    function render() {
+      var list = filtered();
+      renderStats(list);
+
+      if (list.length === 0) {
+        contentEl.innerHTML = '<div class="state"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-3 10h-8a1 1 0 0 1 0-2h8a1 1 0 0 1 0 2z"/></svg><p>No leads match this view.</p></div>';
+        return;
+      }
+
+      contentEl.innerHTML = activeView === "table" ? renderTable(list) : renderCards(list);
+    }
+
+    function renderTable(list) {
+      var rows = list.map(function (l) {
+        var s = statusOf(l);
+        return '<tr>' +
+          '<td><div class="name">' + escapeHtml(l.customer_name) + "</div></td>" +
+          '<td><a class="phone" href="tel:' + escapeHtml(l.phone) + '">' + escapeHtml(l.phone) + "</a></td>" +
+          '<td><div class="req">' + escapeHtml(l.address) + "</div></td>" +
+          '<td><span class="date">' + fmtDate(l.created_at) + "</span></td>" +
+          '<td><select class="status ' + statusClass(s) + '" data-id="' + l.id + '">' + statusOptions(s) + "</select></td>" +
+          '<td><div class="row-actions">' +
+            '<button class="icon-btn" data-tel="' + escapeHtml(l.phone) + '" title="Call"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.02z"/></svg></button>' +
+            '<button class="icon-btn del" data-del="' + l.id + '" title="Delete"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>' +
+          "</div></td></tr>";
+      }).join("");
+
+      return '<div class="table-wrap"><table>' +
+        "<thead><tr><th>Name</th><th>Phone</th><th>Requirement</th><th>Date</th><th>Status</th><th style=\"text-align:right\">Actions</th></tr></thead>" +
+        "<tbody>" + rows + "</tbody></table></div>";
+    }
+
+    function renderCards(list) {
+      var cards = list.map(function (l) {
+        var s = statusOf(l);
+        var chipClass = s === "Completed" ? "completed" : (s === "In Progress" ? "progress" : "pending");
+        return '<div class="lead-card">' +
+          '<div class="top"><div class="name">' + escapeHtml(l.customer_name) + "</div>" +
+          '<span class="chip ' + chipClass + '">' + s + "</span></div>" +
+          '<div class="req">' + escapeHtml(l.address) + "</div>" +
+          '<a class="phone" href="tel:' + escapeHtml(l.phone) + '">' + escapeHtml(l.phone) + "</a>" +
+          '<div class="foot">' +
+            '<span class="date">' + fmtDate(l.created_at) + "</span>" +
+            '<select class="status ' + statusClass(s) + '" data-id="' + l.id + '">' + statusOptions(s) + "</select>" +
+          "</div>" +
+          '<div class="row-actions"><button class="icon-btn del" data-del="' + l.id + '" title="Delete"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button></div>' +
+          "</div>";
+      }).join("");
+      return '<div class="cards">' + cards + "</div>";
+    }
+
+    contentEl.addEventListener("click", async function (e) {
+      var delBtn = e.target.closest("[data-del]");
+      if (delBtn) {
+        var id = delBtn.getAttribute("data-del");
+        if (!confirm("Delete this lead permanently?")) return;
+        var { error } = await supabase.from("orders").delete().eq("id", id);
+        if (error) {
+          toast("Delete failed: " + error.message, "bad");
+        } else {
+          leads = leads.filter(function (l) { return String(l.id) !== id; });
+          render();
+          toast("Lead deleted.", "ok");
+        }
+        return;
+      }
+
+      var telBtn = e.target.closest("[data-tel]");
+      if (telBtn) {
+        window.location.href = "tel:" + telBtn.getAttribute("data-tel");
+      }
+    });
+
+    contentEl.addEventListener("change", async function (e) {
+      var sel = e.target.closest("select.status");
+      if (!sel) return;
+      var id = sel.getAttribute("data-id");
+      var status = sel.value;
+      sel.disabled = true;
+      var { error } = await supabase.from("orders").update({ status: status }).eq("id", id);
+      sel.disabled = false;
+      if (error) {
+        toast("Status update failed: " + error.message, "bad");
+        loadLeads();
+      } else {
+        leads.forEach(function (l) {
+          if (String(l.id) === id) l.status = status;
+        });
+        sel.className = "status " + statusClass(status);
+        renderStats(filtered());
+        toast("Status changed to " + status + ".", "ok");
+      }
+    });
+
+    document.getElementById("searchInput").addEventListener("input", function (e) {
+      searchTerm = e.target.value;
+      render();
+    });
+
+    document.getElementById("statusTabs").addEventListener("click", function (e) {
+      var tab = e.target.closest(".tab");
+      if (!tab) return;
+      activeFilter = tab.getAttribute("data-filter");
+      this.querySelectorAll(".tab").forEach(function (t) { t.classList.toggle("active", t === tab); });
+      render();
+    });
+
+    document.getElementById("viewTable").addEventListener("click", function () {
+      activeView = "table";
+      this.classList.add("active");
+      document.getElementById("viewCards").classList.remove("active");
+      render();
+    });
+
+    document.getElementById("viewCards").addEventListener("click", function () {
+      activeView = "cards";
+      this.classList.add("active");
+      document.getElementById("viewTable").classList.remove("active");
+      render();
+    });
+
+    document.getElementById("refreshBtn").addEventListener("click", loadLeads);
+
+    supabase.auth.getSession().then(function (res) {
+      if (res.error || !res.data.session) {
+        lockScreen.classList.remove("hidden");
+        lockEmail.focus();
+      } else {
+        unlock();
+      }
+    });
+  </script>
+</body>
+</html>

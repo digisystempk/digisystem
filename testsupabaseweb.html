@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiSystem - Test Order Form</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+  <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-full border border-gray-700">
+    <h2 class="text-2xl font-bold text-center mb-2 text-indigo-400">DigiSystem Test Form</h2>
+    <p class="text-gray-400 text-sm text-center mb-6">Supabase Database Testing</p>
+
+    <form id="orderForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Customer Name</label>
+        <input type="text" id="customer_name" required placeholder="Ali Khan" 
+               class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Phone Number</label>
+        <input type="text" id="phone" required placeholder="03001234567" 
+               class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Address / Message</label>
+        <textarea id="address" required placeholder="Lahore, Pakistan" rows="3"
+                  class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white focus:outline-none focus:border-indigo-500"></textarea>
+      </div>
+
+      <button type="submit" id="submitBtn" 
+              class="w-full bg-indigo-600 hover:bg-indigo-700 font-bold py-3 rounded-lg transition duration-200">
+        Submit Test Order 🚀
+      </button>
+    </form>
+
+    <!-- Status Message -->
+    <div id="statusMsg" class="mt-4 text-center font-semibold hidden"></div>
+  </body>
+  <script>
+  // 🔑 1. Correct URL and Anon Key
+  const SUPABASE_URL = "https://gvhrjcsfqhcvdksndqcx.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2aHJqY3NmcWhjdmRrc25kcWN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0MTQyNjgsImV4cCI6MjEwMTk5MDI2OH0.bc00jGTZB2V9AW6mK6CrZA99W9eRPS-0UWu8hGpmnAM "; // (Apni full anon key rehne do yahan)
+
+  // 🔑 2. Fix Variable Name
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const form = document.getElementById('orderForm');
+  const statusMsg = document.getElementById('statusMsg');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    submitBtn.innerText = "Sending Data...";
+    submitBtn.disabled = true;
+
+    const customer_name = document.getElementById('customer_name').value;
+    const phone = document.getElementById('phone').value;
+    const address = document.getElementById('address').value;
+
+    // 📥 3. Use supabaseClient here
+    const { data, error } = await supabaseClient
+      .from('orders')
+      .insert([
+        { 
+          customer_name: customer_name, 
+          phone: phone, 
+          address: address 
+        }
+      ]);
+
+    statusMsg.classList.remove('hidden');
+    if (error) {
+      statusMsg.innerText = "❌ Error: " + error.message;
+      statusMsg.className = "mt-4 text-center text-red-400 font-semibold";
+    } else {
+      statusMsg.innerText = "✅ Order Saved Successfully in Supabase!";
+      statusMsg.className = "mt-4 text-center text-green-400 font-semibold";
+      form.reset();
+    }
+
+    submitBtn.innerText = "Submit Test Order 🚀";
+    submitBtn.disabled = false;
+  });
+</script>
+
+</body>
+</html>

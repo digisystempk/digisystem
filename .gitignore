@@ -1,0 +1,11 @@
+# System / editor
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.log
+
+# Node / build artifacts (if any later)
+node_modules/
+dist/
+.vscode/
+.idea/

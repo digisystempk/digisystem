@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event AI Poster Prompt Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 py-6 px-4 text-center bg-slate-950/50 backdrop-blur">
+    <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-indigo-500">
+      🎉 AI Event Poster Prompt Studio
+    </h1>
+    <p class="text-slate-400 text-sm mt-2">Select an event template, add your details, and get an aesthetic AI image prompt!</p>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+    
+    <!-- Section 1: Template Selection -->
+    <h2 class="text-xl font-bold mb-4 text-slate-200">1. Select Event Template</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="templateGrid">
+      
+      <!-- Birthday Card -->
+      <div onclick="selectEvent('birthday')" id="card-birthday" class="event-card cursor-pointer rounded-xl p-5 border-2 border-slate-800 bg-slate-800/50 hover:border-teal-500 transition-all flex flex-col items-center text-center group">
+        <div class="w-14 h-14 rounded-full bg-pink-500/10 text-pink-400 flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+          🎂
+        </div>
+        <h3 class="font-bold text-lg">Birthday Party</h3>
+        <p class="text-xs text-slate-400 mt-1">Festive, balloons, confetti & cake vibes</p>
+      </div>
+
+      <!-- Independence Day Card -->
+      <div onclick="selectEvent('independence')" id="card-independence" class="event-card cursor-pointer rounded-xl p-5 border-2 border-slate-800 bg-slate-800/50 hover:border-teal-500 transition-all flex flex-col items-center text-center group">
+        <div class="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+          🇵🇰
+        </div>
+        <h3 class="font-bold text-lg">Independence Day</h3>
+        <p class="text-xs text-slate-400 mt-1">Green & white, fireworks, patriotic theme</p>
+      </div>
+
+      <!-- Eid Mubarak Card -->
+      <div onclick="selectEvent('eid')" id="card-eid" class="event-card cursor-pointer rounded-xl p-5 border-2 border-slate-800 bg-slate-800/50 hover:border-teal-500 transition-all flex flex-col items-center text-center group">
+        <div class="w-14 h-14 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+          🌙
+        </div>
+        <h3 class="font-bold text-lg">Eid Celebration</h3>
+        <p class="text-xs text-slate-400 mt-1">Crescent moon, golden lanterns & luxury look</p>
+      </div>
+
+      <!-- Tech Conference Card -->
+      <div onclick="selectEvent('tech')" id="card-tech" class="event-card cursor-pointer rounded-xl p-5 border-2 border-slate-800 bg-slate-800/50 hover:border-teal-500 transition-all flex flex-col items-center text-center group">
+        <div class="w-14 h-14 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+          🚀
+        </div>
+        <h3 class="font-bold text-lg">Tech Event / Seminar</h3>
+        <p class="text-xs text-slate-400 mt-1">Futuristic neon, cyber background & professional</p>
+      </div>
+
+    </div>
+
+    <!-- Section 2: Input Details -->
+    <div id="inputForm" class="bg-slate-800/60 rounded-2xl p-6 border border-slate-700/50 mb-8 hidden">
+      <h2 class="text-xl font-bold mb-4 text-slate-200" id="selectedEventTitle">2. Fill Event Details</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1">Name / Main Title</label>
+          <input type="text" id="mainTitle" placeholder="e.g. Ali's 21st Birthday or 14th August Special" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-teal-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1">Date / Tagline</label>
+          <input type="text" id="subTitle" placeholder="e.g. 14th August 2026 or Special Night" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-teal-500">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1">Visual Style / Vibe</label>
+          <select id="vibeStyle" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-teal-500">
+            <option value="Ultra-realistic, 8k resolution, cinematic lighting">Cinematic & Ultra Realistic</option>
+            <option value="3D render, Pixar style, vibrant colors, glossy finish">3D Animated & Cute</option>
+            <option value="Minimalist design, elegant typography, pastel colors">Minimalist & Elegant</option>
+            <option value="Neon glow, dark mode, futuristic cyberpunk">Neon Cyberpunk</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1">Include Subject Photo Slot?</label>
+          <select id="includeSubject" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-teal-500">
+            <option value="true">Yes (Blend my uploaded photo seamlessly)</option>
+            <option value="false">No (Pure Graphic Poster / No Person)</option>
+          </select>
+        </div>
+      </div>
+
+      <button onclick="generatePrompt()" class="w-full bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg shadow-teal-500/20">
+        ✨ Generate Master AI Prompt
+      </button>
+    </div>
+
+    <!-- Section 3: Generated Output Prompt -->
+    <div id="outputBox" class="bg-slate-950 border border-teal-500/40 rounded-2xl p-6 hidden relative">
+      <div class="flex justify-between items-center mb-3">
+        <span class="text-xs font-semibold text-teal-400 bg-teal-500/10 border border-teal-500/20 px-3 py-1 rounded-full">
+          READY FOR GEMINI / CHATGPT / MIDJOURNEY
+        </span>
+        <button onclick="copyPrompt()" id="copyBtn" class="bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
+          <i class="fa-regular fa-copy"></i> Copy Prompt
+        </button>
+      </div>
+
+      <textarea id="promptResult" readonly class="w-full bg-slate-900/80 text-slate-200 border border-slate-800 rounded-xl p-4 font-mono text-sm h-36 focus:outline-none resize-none"></textarea>
+
+      <div class="mt-4 flex flex-wrap gap-3 text-xs text-slate-400">
+        <span class="font-bold text-slate-300">💡 Quick Tip:</span> Open 
+        <a href="https://gemini.google.com" target="_blank" class="text-teal-400 hover:underline">Gemini</a> or 
+        <a href="https://chatgpt.com" target="_blank" class="text-teal-400 hover:underline">ChatGPT</a>, upload your portrait photo, and paste this prompt!
+      </div>
+    </div>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
